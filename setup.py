@@ -9,5 +9,5 @@ setup(
     license='',
     author='Pascal Potvin',
     author_email='pascal.potvin@gmail.com',
-    description='', requires=['six']
+    description='', requires=['six', 'mock']
 )
