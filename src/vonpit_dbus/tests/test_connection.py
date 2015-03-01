@@ -1,9 +1,10 @@
 # coding: utf-8
 import abc
 import unittest
-from unittest.mock import MagicMock
 
 import six
+
+from mock import MagicMock
 
 from vonpit_dbus.tests._test_connection import ADbusConnection
 
