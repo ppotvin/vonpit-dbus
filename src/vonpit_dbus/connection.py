@@ -9,3 +9,7 @@ class DbusConnection(object):
 
     def start_client(self):
         self.__transport.send_null_byte()
+
+    def auth(self):
+        self.__transport.send_line('AUTH')
+        self.__transport.recv_command()
