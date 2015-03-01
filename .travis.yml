@@ -5,6 +5,6 @@ python:
 install:
   - python setup.py sdist
   - pip install dist/vonpit-dbus-*.tar.gz
-  - pip uninstall vonpit-dbus
+  - pip uninstall vonpit-dbus -y
 script:
   - py.test src
