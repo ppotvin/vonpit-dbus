@@ -1,4 +1,6 @@
-from distutils.core import setup
+# coding: utf-8
+from setuptools import setup
+
 
 setup(
     name='vonpit-dbus',
@@ -9,5 +11,9 @@ setup(
     license='',
     author='Pascal Potvin',
     author_email='pascal.potvin@gmail.com',
-    description='', requires=['six', 'mock']
+    description='',
+    install_requires=[
+        'six',
+        'mock',
+    ],
 )
