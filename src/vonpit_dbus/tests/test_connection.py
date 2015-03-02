@@ -28,6 +28,7 @@ class DbusConnectionUnitTest(unittest.TestCase):
 
         result = connection.get_available_mechanisms()
 
+        transport.assert_story_completed()
         for mechanism in mechanisms:
             self.assertIn(mechanism, result)
 
@@ -41,6 +42,7 @@ class DbusConnectionUnitTest(unittest.TestCase):
         with self.assertRaises(DbusConnectionError):
             connection.get_available_mechanisms()
 
+        transport.assert_story_completed()
 
 def given(builder):
     return builder.build()
