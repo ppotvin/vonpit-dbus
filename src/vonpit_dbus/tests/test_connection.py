@@ -1,16 +1,16 @@
 # coding: utf-8
-import abc
 import unittest
-
-import six
 
 from mock import MagicMock
 
-from vonpit_dbus.tests._test_connection import ADbusConnection
+from vonpit_dbus.connection import DbusConnectionError
+
+from vonpit_dbus.tests._test_connection import ADbusConnection, TextReplayTransport
+from vonpit_dbus.transport import Transport
 
 
 class DbusConnectionUnitTest(unittest.TestCase):
-    def test_start_client_should_send_nul_byte(self):
+    def test_when_start_client_should_send_nul_byte(self):
         transport = MagicMock(spec_set=Transport)
         connection = given(ADbusConnection().with_transport(transport))
 
@@ -18,45 +18,28 @@ class DbusConnectionUnitTest(unittest.TestCase):
 
         transport.send_null_byte.assert_called_once_with()
 
-    def test_auth_should_send_line(self):
-        transport = MagicMock(spec_set=Transport)
+    def test_when_get_available_mechanisms_should_return_available_mechanisms(self):
+        mechanisms = ['KERBEROS_V4', 'SKEY']
+        transport = TextReplayTransport('''
+        C: AUTH
+        S: REJECTED %s
+        ''' % ' '.join(mechanisms))
         connection = given(ADbusConnection().connected().with_transport(transport))
 
-        connection.auth()
+        result = connection.get_available_mechanisms()
 
-        transport.send_line.assert_called_once_with('AUTH')
+        for mechanism in mechanisms:
+            self.assertIn(mechanism, result)
 
-    def test_auth_should_wait_for_answer(self):
-        transport = MagicMock(spec_set=Transport)
+    def test_invalid_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
+        transport = TextReplayTransport('''
+        C: AUTH
+        S: REJCETED SKEY
+        ''')
         connection = given(ADbusConnection().connected().with_transport(transport))
 
-        connection.auth()
-
-        transport.recv_command.assert_called_once_with()
-
-
-class Transport(six.with_metaclass(abc.ABCMeta, object)):
-    @abc.abstractmethod
-    def send_null_byte(self):
-        print('\\0')
-
-    @abc.abstractmethod
-    def send_line(self, line):
-        print('%s\r\n')
-
-    @abc.abstractmethod
-    def recv_command(self):
-        return 'ERROR'
-
-    @classmethod
-    def __subclasshook__(cls, subclass):
-        required_methods = ['send_null_byte']
-        if cls is Transport:
-            for method in required_methods:
-                if not any(method in B.__dict__ for B in subclass.__mro__):
-                    return False
-            return True
-        return NotImplemented
+        with self.assertRaises(DbusConnectionError):
+            connection.get_available_mechanisms()
 
 
 def given(builder):
