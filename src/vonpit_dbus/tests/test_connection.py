@@ -44,5 +44,18 @@ class DbusConnectionUnitTest(unittest.TestCase):
 
         transport.assert_story_completed()
 
+    def test_error_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
+        transport = TextReplayTransport('''
+        C: AUTH
+        S: ERROR
+        ''')
+        connection = given(ADbusConnection().connected().with_transport(transport))
+
+        with self.assertRaises(DbusConnectionError):
+            connection.get_available_mechanisms()
+
+        transport.assert_story_completed()
+
+
 def given(builder):
     return builder.build()
