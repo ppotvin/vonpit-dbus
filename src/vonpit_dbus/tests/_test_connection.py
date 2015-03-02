@@ -1,4 +1,5 @@
 # coding: utf-8
+from vonpit_dbus.auth_mechanism import AuthMechanism
 from vonpit_dbus.connection import DbusConnection
 from vonpit_dbus.transport import Transport
 
@@ -70,3 +71,27 @@ class TextReplayTransport(Transport):
                 'Story was not completed: was still waiting for \n'
                 '  %s' % '\n  '.join(self.__story_lines[self.__line_pointer:])
             )
+
+
+class FakeAuthMechanism(AuthMechanism):
+    def __init__(self, name, initial_response, challenges=()):
+        self.__name = name
+        self.__initial_response = initial_response
+        self.__challenges = challenges
+        self.__challenge_pointer = 0
+
+    @property
+    def name(self):
+        return self.__name
+
+    def get_initial_response(self):
+        state = AuthMechanism.CONTINUE if self.__challenges else AuthMechanism.OK
+        return state, self.__initial_response
+
+    def challenge_with(self, challenge):
+        expected_challenge = self.__challenges[self.__challenge_pointer]
+        if expected_challenge[0] != challenge:
+            raise AssertionError('Wrong challenge: %s != %s' % (challenge, expected_challenge[0]))
+        self.__challenge_pointer += 1
+        status = AuthMechanism.CONTINUE if self.__challenge_pointer < len(self.__challenges) else AuthMechanism.OK
+        return status, expected_challenge[1]
