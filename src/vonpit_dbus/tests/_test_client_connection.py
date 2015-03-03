@@ -1,7 +1,7 @@
 # coding: utf-8
 from vonpit_dbus.auth_mechanism import AuthMechanism
 from vonpit_dbus.client_connection import DbusClientConnection
-from vonpit_dbus.transport import Transport
+from vonpit_dbus.transports import Transport
 
 
 class ADbusClientConnection(object):

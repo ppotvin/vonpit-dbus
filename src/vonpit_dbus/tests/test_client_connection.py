@@ -8,7 +8,7 @@ from vonpit_dbus.tests._test_client_connection import ADbusClientConnection
 from vonpit_dbus.tests._test_client_connection import AFakeAuthMechanism
 from vonpit_dbus.tests._test_client_connection import TextReplayTransport
 from vonpit_dbus.tests._test_client_connection import FakeAuthMechanism
-from vonpit_dbus.transport import Transport
+from vonpit_dbus.transports import Transport
 
 
 class DbusClientConnectionUnitTest(unittest.TestCase):
