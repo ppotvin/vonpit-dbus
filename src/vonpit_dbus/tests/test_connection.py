@@ -33,6 +33,7 @@ class DbusConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
         for mechanism in mechanisms:
             self.assertIn(mechanism, result)
+        self.assertEqual(len(mechanisms), len(result))
 
     def test_invalid_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
         transport = TextReplayTransport('''
