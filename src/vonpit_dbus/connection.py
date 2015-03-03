@@ -34,21 +34,49 @@ class DbusConnection(object):
         if status == AuthMechanism.CONTINUE:
             self.__wait_for_auth_data()
         else:
-            self.__wait_for_ok()
-
-    def __wait_for_ok(self):
-        self.__transport.recv_command()
+            self.__wait_for_auth_ok()
 
     def __wait_for_auth_data(self):
-        challenge = self.__transport.recv_command()
-        status, response = self.__mechanism.challenge_with(challenge[5:])
+        server_command, _, parameters = self.__transport.recv_command().partition(' ')
+
+        if server_command == 'DATA':
+            self.__challenge_mechanism(parameters)
+        elif server_command == 'REJECTED':
+            raise DbusAuthenticationFailure
+        elif server_command == 'ERROR':
+            self.__transport.send_line('CANCEL')
+            self.__wait_for_auth_reject()
+        elif server_command == 'OK':
+            self.__authenticated = True
+        else:
+            self.__transport.send_line('ERROR')
+            self.__wait_for_auth_data()
+
+    def __challenge_mechanism(self, challenge):
+        status, response = self.__mechanism.challenge_with(challenge)
         self.__transport.send_line('DATA %s' % response)
 
         if status == AuthMechanism.CONTINUE:
             self.__wait_for_auth_data()
         else:
-            self.__wait_for_ok()
+            self.__wait_for_auth_ok()
+
+    def __wait_for_auth_reject(self):
+        server_command, _, parameters = self.__transport.recv_command().partition(' ')
+        if server_command == 'REJECTED':
+            raise DbusAuthenticationFailure
+
+    def __wait_for_auth_ok(self):
+        self.__transport.recv_command()
+
+    @property
+    def authenticated(self):
+        return self.__authenticated
 
 
 class DbusConnectionError(Exception):
+    pass
+
+
+class DbusAuthenticationFailure(DbusConnectionError):
     pass

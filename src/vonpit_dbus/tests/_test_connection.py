@@ -95,3 +95,25 @@ class FakeAuthMechanism(AuthMechanism):
         self.__challenge_pointer += 1
         status = AuthMechanism.CONTINUE if self.__challenge_pointer < len(self.__challenges) else AuthMechanism.OK
         return status, expected_challenge[1]
+
+
+class AFakeAuthMechanism(object):
+    NAME = 'SKEY'
+    INITIAL_RESPONSE = None
+    CHALLENGES = ()
+
+    def __init__(self):
+        self.__name = self.NAME
+        self.__initial_response = self.INITIAL_RESPONSE
+        self.__challenges = self.CHALLENGES
+
+    def with_challenges(self, challenges):
+        self.__challenges = challenges
+        return self
+
+    def with_any_challenge(self):
+        self.__challenges = [('a', 'b')]
+        return self
+
+    def build(self):
+        return FakeAuthMechanism(self.__name, self.__initial_response, self.__challenges)
