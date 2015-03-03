@@ -62,11 +62,10 @@ class DbusConnectionUnitTest(unittest.TestCase):
     def test_when_authenticate_should_use_initial_response_from_mechanism(self):
         a_mechanism_name = 'MAGIC_COOKIE'
         an_initial_response = '3138363935333137393635383634'
-        a_guid = '1234deadbeef'
         transport = TextReplayTransport('''
         C: AUTH %s %s
-        S: OK %s
-        ''' % (a_mechanism_name, an_initial_response, a_guid))
+        S: OK universal_id
+        ''' % (a_mechanism_name, an_initial_response))
         connection = given(ADbusConnection().connected().with_transport(transport))
         mechanism = FakeAuthMechanism(a_mechanism_name, an_initial_response)
 
@@ -77,14 +76,13 @@ class DbusConnectionUnitTest(unittest.TestCase):
 
 class DbusConnectionClientAuthenticationTest(unittest.TestCase):
     def test_waiting_for_data_when_receive_data_should_challenge_mechanism(self):
-        a_guid = '1234deadbeef'
         a_challenge = ('8799cabb2ea93e', '8ac876e8f68ee9809bfa876e6f9876g8fa8e76e98f')
         transport = TextReplayTransport('''
         C: AUTH %s
         S: DATA %s
         C: DATA %s
-        S: OK %s
-        ''' % (AFakeAuthMechanism.NAME, a_challenge[0], a_challenge[1], a_guid))
+        S: OK universal_id
+        ''' % (AFakeAuthMechanism.NAME, a_challenge[0], a_challenge[1]))
         connection = given(ADbusConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_challenges([a_challenge]))
 
@@ -121,13 +119,11 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
 
         transport.assert_story_completed()
 
-
     def test_waiting_for_data_when_receive_ok_should_set_authenticated(self):
-        a_guid = '123deadbeef'
         transport = TextReplayTransport('''
         C: AUTH %s
-        S: OK %s
-        ''' % (AFakeAuthMechanism.NAME, a_guid))
+        S: OK universal_id
+        ''' % AFakeAuthMechanism.NAME)
         connection = given(ADbusConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_any_challenge())
 
@@ -137,7 +133,6 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         self.assertTrue(connection.authenticated)
 
     def test_waiting_for_data_when_receive_anything_else_should_send_error_and_wait_for_data(self):
-        a_guid = '1234deadbeef'
         a_challenge = ('8799cabb2ea93e', '8ac876e8f68ee9809bfa876e6f9876g8fa8e76e98f')
         transport = TextReplayTransport('''
         C: AUTH %s
@@ -145,14 +140,86 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: ERROR
         S: DATA %s
         C: DATA %s
-        S: OK %s
-        ''' % (AFakeAuthMechanism.NAME, a_challenge[0], a_challenge[1], a_guid))
+        S: OK universal_id
+        ''' % (AFakeAuthMechanism.NAME, a_challenge[0], a_challenge[1]))
         connection = given(ADbusConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_challenges([a_challenge]))
 
         connection.authenticate_with(mechanism)
 
         transport.assert_story_completed()
+
+    def test_waiting_for_ok_when_receive_ok_should_set_authenticated(self):
+        transport = TextReplayTransport('''
+        C: AUTH %s
+        S: OK universal_id
+        ''' % AFakeAuthMechanism.NAME)
+        connection = given(ADbusConnection().connected().with_transport(transport))
+        mechanism = given(AFakeAuthMechanism())
+
+        connection.authenticate_with(mechanism)
+
+        transport.assert_story_completed()
+        self.assertTrue(connection.authenticated)
+
+    def test_waiting_for_ok_when_receive_rejected_should_raise_DbusAuthenticationFailure(self):
+        transport = TextReplayTransport('''
+        C: AUTH %s
+        S: REJECTED
+        ''' % AFakeAuthMechanism.NAME)
+        connection = given(ADbusConnection().connected().with_transport(transport))
+        mechanism = given(AFakeAuthMechanism())
+
+        with self.assertRaises(DbusAuthenticationFailure):
+            connection.authenticate_with(mechanism)
+
+        transport.assert_story_completed()
+
+    def test_waiting_for_ok_when_receive_data_should_send_cancel_and_wait_for_reject(self):
+        transport = TextReplayTransport('''
+        C: AUTH %s
+        S: DATA some-challenge
+        C: CANCEL
+        S: REJECTED
+        ''' % AFakeAuthMechanism.NAME)
+        connection = given(ADbusConnection().connected().with_transport(transport))
+        mechanism = given(AFakeAuthMechanism())
+
+        with self.assertRaises(DbusAuthenticationFailure):
+            connection.authenticate_with(mechanism)
+
+        transport.assert_story_completed()
+
+    def test_waiting_for_ok_when_receive_error_should_send_cancel_and_wait_for_reject(self):
+        transport = TextReplayTransport('''
+        C: AUTH %s
+        S: ERROR msg
+        C: CANCEL
+        S: REJECTED
+        ''' % AFakeAuthMechanism.NAME)
+        connection = given(ADbusConnection().connected().with_transport(transport))
+        mechanism = given(AFakeAuthMechanism())
+
+        with self.assertRaises(DbusAuthenticationFailure):
+            connection.authenticate_with(mechanism)
+
+        transport.assert_story_completed()
+
+    def test_waiting_for_ok_when_receive_anything_else_should_send_error_and_wait_for_ok(self):
+        transport = TextReplayTransport('''
+        C: AUTH %s
+        S: BONJOUR
+        C: ERROR
+        S: OK universal_id
+        ''' % AFakeAuthMechanism.NAME)
+        connection = given(ADbusConnection().connected().with_transport(transport))
+        mechanism = given(AFakeAuthMechanism())
+
+        connection.authenticate_with(mechanism)
+
+        transport.assert_story_completed()
+        self.assertTrue(connection.authenticated)
+
 
 def given(builder):
     return builder.build()

@@ -67,7 +67,17 @@ class DbusConnection(object):
             raise DbusAuthenticationFailure
 
     def __wait_for_auth_ok(self):
-        self.__transport.recv_command()
+        server_command, _, parameters = self.__transport.recv_command().partition(' ')
+        if server_command == 'OK':
+            self.__authenticated = True
+        elif server_command == 'REJECTED':
+            raise DbusAuthenticationFailure
+        elif server_command in ('DATA', 'ERROR'):
+            self.__transport.send_line('CANCEL')
+            self.__wait_for_auth_reject()
+        else:
+            self.__transport.send_line('ERROR')
+            self.__wait_for_auth_ok()
 
     @property
     def authenticated(self):
