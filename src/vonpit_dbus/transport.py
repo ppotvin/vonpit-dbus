@@ -17,9 +17,13 @@ class Transport(six.with_metaclass(abc.ABCMeta, object)):
     def recv_command(self):
         return 'ERROR'
 
+    @abc.abstractmethod
+    def close(self):
+        pass
+
     @classmethod
     def __subclasshook__(cls, subclass):
-        required_methods = ['send_null_byte']
+        required_methods = ['send_null_byte', 'send_line', 'recv_command', 'close']
         if cls is Transport:
             for method in required_methods:
                 if not any(method in B.__dict__ for B in subclass.__mro__):

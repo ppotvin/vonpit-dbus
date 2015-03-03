@@ -30,6 +30,7 @@ class TextReplayTransport(Transport):
         self.__story_lines = [line.strip() for line in self.__story_lines]
         self.__line_pointer = 0
         self.__null_byte_sent = False
+        self.__closed = False
 
     def send_null_byte(self):
         if self.__null_byte_sent:
@@ -71,6 +72,13 @@ class TextReplayTransport(Transport):
                 'Story was not completed: was still waiting for \n'
                 '  %s' % '\n  '.join(self.__story_lines[self.__line_pointer:])
             )
+
+    def close(self):
+        self.__closed = True
+
+    def assert_closed(self):
+        if not self.__closed:
+            raise AssertionError('Transport was not closed')
 
 
 class FakeAuthMechanism(AuthMechanism):

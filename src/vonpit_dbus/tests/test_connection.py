@@ -220,6 +220,21 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         transport.assert_story_completed()
         self.assertTrue(connection.authenticated)
 
+    def test_waiting_for_reject_when_receive_anything_else_should_raise_DbusConnectionError_and_disconnect(self):
+        transport = TextReplayTransport('''
+        C: AUTH %s
+        S: ERROR msg
+        C: CANCEL
+        S: HELLOWHOISTHERE
+        ''' % AFakeAuthMechanism.NAME)
+        connection = given(ADbusConnection().connected().with_transport(transport))
+        mechanism = given(AFakeAuthMechanism())
+
+        with self.assertRaises(DbusConnectionError):
+            connection.authenticate_with(mechanism)
+
+        transport.assert_closed()
+
 
 def given(builder):
     return builder.build()
