@@ -6,14 +6,14 @@ from mock import MagicMock
 from vonpit_dbus.client_connection import DbusConnectionError, DbusAuthenticationFailure
 from vonpit_dbus.tests._test_client_connection import ADbusClientConnection
 from vonpit_dbus.tests._test_client_connection import AFakeAuthMechanism
-from vonpit_dbus.tests._test_client_connection import TextReplayTransport
+from vonpit_dbus.tests._test_client_connection import TextReplayClientTransport
 from vonpit_dbus.tests._test_client_connection import FakeAuthMechanism
-from vonpit_dbus.transports import Transport
+from vonpit_dbus.transports import DbusClientTransport
 
 
 class DbusClientConnectionUnitTest(unittest.TestCase):
     def test_when_start_client_should_send_nul_byte(self):
-        transport = MagicMock(spec_set=Transport)
+        transport = MagicMock(spec_set=DbusClientTransport)
         connection = given(ADbusClientConnection().with_transport(transport))
 
         connection.start()
@@ -22,7 +22,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
 
     def test_when_get_available_mechanisms_should_return_available_mechanisms(self):
         mechanisms = ['KERBEROS_V4', 'SKEY']
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH
         S: REJECTED %s
         ''' % ' '.join(mechanisms))
@@ -36,7 +36,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         self.assertEqual(len(mechanisms), len(result))
 
     def test_invalid_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH
         S: REJCETED SKEY
         ''')
@@ -48,7 +48,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_error_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH
         S: ERROR
         ''')
@@ -62,7 +62,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
     def test_when_authenticate_should_use_initial_response_from_mechanism(self):
         a_mechanism_name = 'MAGIC_COOKIE'
         an_initial_response = '3138363935333137393635383634'
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s %s
         S: OK universal_id
         ''' % (a_mechanism_name, an_initial_response))
@@ -75,7 +75,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
 
     def test_waiting_for_data_when_receive_data_should_challenge_mechanism(self):
         a_challenge = ('8799cabb2ea93e', '8ac876e8f68ee9809bfa876e6f9876g8fa8e76e98f')
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: DATA %s
         C: DATA %s
@@ -90,7 +90,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
 
     def test_waiting_for_data_when_receive_rejected_should_raise_DbusAuthenticationFailure(self):
         another_mechanism = 'MAGIC_COOKIE'
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: REJECTED %s
         ''' % (AFakeAuthMechanism.NAME, another_mechanism))
@@ -103,7 +103,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_waiting_for_data_when_receive_error_should_send_cancel_and_wait_for_reject(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: ERROR
         C: CANCEL
@@ -118,7 +118,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_waiting_for_data_when_receive_ok_should_set_authenticated(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: OK universal_id
         ''' % AFakeAuthMechanism.NAME)
@@ -132,7 +132,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
 
     def test_waiting_for_data_when_receive_anything_else_should_send_error_and_wait_for_data(self):
         a_challenge = ('8799cabb2ea93e', '8ac876e8f68ee9809bfa876e6f9876g8fa8e76e98f')
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: HELLO
         C: ERROR
@@ -148,7 +148,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_waiting_for_ok_when_receive_ok_should_set_authenticated(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: OK universal_id
         ''' % AFakeAuthMechanism.NAME)
@@ -161,7 +161,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         self.assertTrue(connection.authenticated)
 
     def test_waiting_for_ok_when_receive_rejected_should_raise_DbusAuthenticationFailure(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: REJECTED
         ''' % AFakeAuthMechanism.NAME)
@@ -174,7 +174,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_waiting_for_ok_when_receive_data_should_send_cancel_and_wait_for_reject(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: DATA some-challenge
         C: CANCEL
@@ -189,7 +189,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_waiting_for_ok_when_receive_error_should_send_cancel_and_wait_for_reject(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: ERROR msg
         C: CANCEL
@@ -204,7 +204,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         transport.assert_story_completed()
 
     def test_waiting_for_ok_when_receive_anything_else_should_send_error_and_wait_for_ok(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: BONJOUR
         C: ERROR
@@ -219,7 +219,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         self.assertTrue(connection.authenticated)
 
     def test_waiting_for_reject_when_receive_anything_else_should_raise_DbusConnectionError_and_disconnect(self):
-        transport = TextReplayTransport('''
+        transport = TextReplayClientTransport('''
         C: AUTH %s
         S: ERROR msg
         C: CANCEL

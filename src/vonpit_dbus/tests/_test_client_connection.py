@@ -1,7 +1,7 @@
 # coding: utf-8
 from vonpit_dbus.auth_mechanism import AuthMechanism
 from vonpit_dbus.client_connection import DbusClientConnection
-from vonpit_dbus.transports import Transport
+from vonpit_dbus.transports import DbusClientTransport
 
 
 class ADbusClientConnection(object):
@@ -24,7 +24,7 @@ class ADbusClientConnection(object):
         return connection
 
 
-class TextReplayTransport(Transport):
+class TextReplayClientTransport(DbusClientTransport):
     def __init__(self, story):
         self.__story_lines = story.strip().split('\n')
         self.__story_lines = [line.strip() for line in self.__story_lines]
