@@ -3,20 +3,20 @@ import unittest
 
 from mock import MagicMock
 
-from vonpit_dbus.connection import DbusConnectionError, DbusAuthenticationFailure
-from vonpit_dbus.tests._test_connection import ADbusConnection
-from vonpit_dbus.tests._test_connection import AFakeAuthMechanism
-from vonpit_dbus.tests._test_connection import TextReplayTransport
-from vonpit_dbus.tests._test_connection import FakeAuthMechanism
+from vonpit_dbus.client_connection import DbusConnectionError, DbusAuthenticationFailure
+from vonpit_dbus.tests._test_client_connection import ADbusClientConnection
+from vonpit_dbus.tests._test_client_connection import AFakeAuthMechanism
+from vonpit_dbus.tests._test_client_connection import TextReplayTransport
+from vonpit_dbus.tests._test_client_connection import FakeAuthMechanism
 from vonpit_dbus.transport import Transport
 
 
-class DbusConnectionUnitTest(unittest.TestCase):
+class DbusClientConnectionUnitTest(unittest.TestCase):
     def test_when_start_client_should_send_nul_byte(self):
         transport = MagicMock(spec_set=Transport)
-        connection = given(ADbusConnection().with_transport(transport))
+        connection = given(ADbusClientConnection().with_transport(transport))
 
-        connection.start_client()
+        connection.start()
 
         transport.send_null_byte.assert_called_once_with()
 
@@ -26,7 +26,7 @@ class DbusConnectionUnitTest(unittest.TestCase):
         C: AUTH
         S: REJECTED %s
         ''' % ' '.join(mechanisms))
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
 
         result = connection.get_available_mechanisms()
 
@@ -40,7 +40,7 @@ class DbusConnectionUnitTest(unittest.TestCase):
         C: AUTH
         S: REJCETED SKEY
         ''')
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
 
         with self.assertRaises(DbusConnectionError):
             connection.get_available_mechanisms()
@@ -52,7 +52,7 @@ class DbusConnectionUnitTest(unittest.TestCase):
         C: AUTH
         S: ERROR
         ''')
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
 
         with self.assertRaises(DbusConnectionError):
             connection.get_available_mechanisms()
@@ -66,15 +66,13 @@ class DbusConnectionUnitTest(unittest.TestCase):
         C: AUTH %s %s
         S: OK universal_id
         ''' % (a_mechanism_name, an_initial_response))
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = FakeAuthMechanism(a_mechanism_name, an_initial_response)
 
         connection.authenticate_with(mechanism)
 
         transport.assert_story_completed()
 
-
-class DbusConnectionClientAuthenticationTest(unittest.TestCase):
     def test_waiting_for_data_when_receive_data_should_challenge_mechanism(self):
         a_challenge = ('8799cabb2ea93e', '8ac876e8f68ee9809bfa876e6f9876g8fa8e76e98f')
         transport = TextReplayTransport('''
@@ -83,7 +81,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: DATA %s
         S: OK universal_id
         ''' % (AFakeAuthMechanism.NAME, a_challenge[0], a_challenge[1]))
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_challenges([a_challenge]))
 
         connection.authenticate_with(mechanism)
@@ -96,7 +94,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: AUTH %s
         S: REJECTED %s
         ''' % (AFakeAuthMechanism.NAME, another_mechanism))
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_any_challenge())
 
         with self.assertRaises(DbusAuthenticationFailure):
@@ -111,7 +109,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: CANCEL
         S: REJECTED
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_any_challenge())
 
         with self.assertRaises(DbusAuthenticationFailure):
@@ -124,7 +122,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: AUTH %s
         S: OK universal_id
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_any_challenge())
 
         connection.authenticate_with(mechanism)
@@ -142,7 +140,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: DATA %s
         S: OK universal_id
         ''' % (AFakeAuthMechanism.NAME, a_challenge[0], a_challenge[1]))
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism().with_challenges([a_challenge]))
 
         connection.authenticate_with(mechanism)
@@ -154,7 +152,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: AUTH %s
         S: OK universal_id
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism())
 
         connection.authenticate_with(mechanism)
@@ -167,7 +165,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: AUTH %s
         S: REJECTED
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism())
 
         with self.assertRaises(DbusAuthenticationFailure):
@@ -182,7 +180,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: CANCEL
         S: REJECTED
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism())
 
         with self.assertRaises(DbusAuthenticationFailure):
@@ -197,7 +195,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: CANCEL
         S: REJECTED
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism())
 
         with self.assertRaises(DbusAuthenticationFailure):
@@ -212,7 +210,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: ERROR
         S: OK universal_id
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism())
 
         connection.authenticate_with(mechanism)
@@ -227,7 +225,7 @@ class DbusConnectionClientAuthenticationTest(unittest.TestCase):
         C: CANCEL
         S: HELLOWHOISTHERE
         ''' % AFakeAuthMechanism.NAME)
-        connection = given(ADbusConnection().connected().with_transport(transport))
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
         mechanism = given(AFakeAuthMechanism())
 
         with self.assertRaises(DbusConnectionError):

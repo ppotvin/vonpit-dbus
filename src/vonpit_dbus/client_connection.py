@@ -2,15 +2,15 @@
 from vonpit_dbus.auth_mechanism import AuthMechanism
 
 
-class DbusConnection(object):
+class DbusClientConnection(object):
 
     def __init__(self, transport):
-        super(DbusConnection, self).__init__()
+        super(DbusClientConnection, self).__init__()
         self.__transport = transport
         self.__mechanism = None
         self.__authenticated = False
 
-    def start_client(self):
+    def start(self):
         self.__transport.send_null_byte()
 
     def get_available_mechanisms(self):

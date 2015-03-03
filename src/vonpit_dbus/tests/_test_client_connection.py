@@ -1,10 +1,10 @@
 # coding: utf-8
 from vonpit_dbus.auth_mechanism import AuthMechanism
-from vonpit_dbus.connection import DbusConnection
+from vonpit_dbus.client_connection import DbusClientConnection
 from vonpit_dbus.transport import Transport
 
 
-class ADbusConnection(object):
+class ADbusClientConnection(object):
     def __init__(self):
         self.__transport = None
         self.__connected = False
@@ -18,9 +18,9 @@ class ADbusConnection(object):
         return self
 
     def build(self):
-        connection = DbusConnection(self.__transport)
+        connection = DbusClientConnection(self.__transport)
         if self.__connected:
-            connection.start_client()
+            connection.start()
         return connection
 
 
