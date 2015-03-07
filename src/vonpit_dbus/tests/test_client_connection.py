@@ -232,6 +232,17 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
             connection.authenticate_with(mechanism)
 
         transport.assert_closed()
+        transport.assert_story_completed()
+
+    def test_when_begin_should_send_begin_and_wait_for_ok(self):
+        transport = TextReplayClientTransport('''
+        C: BEGIN
+        ''')
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
+
+        connection.begin()
+
+        transport.assert_story_completed()
 
 
 def given(builder):

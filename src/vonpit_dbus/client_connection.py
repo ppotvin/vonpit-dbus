@@ -86,6 +86,9 @@ class DbusClientConnection(object):
     def authenticated(self):
         return self.__authenticated
 
+    def begin(self):
+        self.__transport.send_line('BEGIN')
+
 
 class DbusConnectionError(Exception):
     pass
