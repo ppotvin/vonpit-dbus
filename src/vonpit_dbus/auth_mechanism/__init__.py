@@ -1,8 +1,9 @@
 # coding: utf-8
 import abc
+import six
 
 
-class AuthMechanism(object):
+class AuthMechanism(six.with_metaclass(abc.ABCMeta)):
     CONTINUE = object()
     OK = object()
     ERROR = object()
