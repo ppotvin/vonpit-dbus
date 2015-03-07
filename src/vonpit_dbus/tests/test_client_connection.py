@@ -244,6 +244,55 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
 
         transport.assert_story_completed()
 
+    def test_when_negotiate_unix_fd_should_send_negotiate_unix_fd_command_and_wait_for_response(self):
+        transport = TextReplayClientTransport('''
+        C: NEGOTIATE_UNIX_FD
+        S: AGREE_UNIX_FD
+        ''')
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
+
+        connection.negotiate_unix_fd()
+
+        transport.assert_story_completed()
+
+    def test_server_agrees_to_unix_fd_when_unix_fd_passing_enabled_should_return_true(self):
+        transport = TextReplayClientTransport('''
+        C: NEGOTIATE_UNIX_FD
+        S: AGREE_UNIX_FD
+        ''')
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
+
+        connection.negotiate_unix_fd()
+        result = connection.unix_fd_passing_enabled
+
+        transport.assert_story_completed()
+        self.assertTrue(result)
+
+    def test_server_disagrees_to_unix_fd_when_unix_fd_passing_enabled_should_return_false(self):
+        transport = TextReplayClientTransport('''
+        C: NEGOTIATE_UNIX_FD
+        S: ERROR
+        ''')
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
+
+        connection.negotiate_unix_fd()
+        result = connection.unix_fd_passing_enabled
+
+        transport.assert_story_completed()
+        self.assertFalse(result)
+
+    def test_server_replies_incorrectly_when_negotiate_unix_fd_should_raise_DbusConnectionError(self):
+        transport = TextReplayClientTransport('''
+        C: NEGOTIATE_UNIX_FD
+        S: ERRO
+        ''')
+        connection = given(ADbusClientConnection().connected().with_transport(transport))
+
+        with self.assertRaises(DbusConnectionError):
+            connection.negotiate_unix_fd()
+
+        transport.assert_story_completed()
+
 
 def given(builder):
     return builder.build()

@@ -9,6 +9,7 @@ class DbusClientConnection(object):
         self.__transport = transport
         self.__mechanism = None
         self.__authenticated = False
+        self.__unix_fd_passing_enabled = False
 
     def start(self):
         self.__transport.send_null_byte()
@@ -85,6 +86,20 @@ class DbusClientConnection(object):
     @property
     def authenticated(self):
         return self.__authenticated
+
+    def negotiate_unix_fd(self):
+        self.__transport.send_line('NEGOTIATE_UNIX_FD')
+        response = self.__transport.recv_command()
+        if response == 'AGREE_UNIX_FD':
+            self.__unix_fd_passing_enabled = True
+        elif response == 'ERROR':
+            self.__unix_fd_passing_enabled = False
+        else:
+            raise DbusConnectionError
+
+    @property
+    def unix_fd_passing_enabled(self):
+        return self.__unix_fd_passing_enabled
 
     def begin(self):
         self.__transport.send_line('BEGIN')
