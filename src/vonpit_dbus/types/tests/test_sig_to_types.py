@@ -102,3 +102,27 @@ class SignatureToTypesConverterUnitTest(unittest.TestCase):
         self.assertEqual(len(enclosed_types_level2), 2)
         self.assertIsInstance(enclosed_types_level2[0], Int32)
         self.assertIsInstance(enclosed_types_level2[1], Int32)
+
+    def test_empty_struct_when_convert_should_raise_ValueError(self):
+        signature = '()'
+        converter = SignatureToTypesConverter()
+
+        with self.assertRaises(ValueError):
+
+            converter.convert(signature)
+
+    def test_incomplete_struct_when_convert_should_raise_ValueError(self):
+        signature = '(i(ii)'
+        converter = SignatureToTypesConverter()
+
+        with self.assertRaises(ValueError):
+
+            converter.convert(signature)
+
+    def test_additional_closing_parenthesis_when_convert_should_raise_ValueError(self):
+        signature = '(i))'
+        converter = SignatureToTypesConverter()
+
+        with self.assertRaises(ValueError):
+
+            converter.convert(signature)

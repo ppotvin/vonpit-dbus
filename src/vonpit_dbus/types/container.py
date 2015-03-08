@@ -11,6 +11,8 @@ class Struct(object):
     ALIGNMENT = 8
 
     def __init__(self, enclosed_types):
+        if not enclosed_types:
+            raise ValueError
         self.__enclosed_types = tuple(enclosed_types)
 
     @property

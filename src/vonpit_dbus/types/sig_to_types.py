@@ -65,6 +65,8 @@ class SignatureToTypesConverter(object):
                 next_type, remaining_signature = self.__read_next_type(remaining_signature)
             except _ContainerEnding:
                 break
+            except IndexError:
+                raise ValueError('STRUCT was not terminated correctly. Missing ")" character')
             types.append(next_type)
         return Struct(types), remaining_signature[1:]
 
