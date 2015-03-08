@@ -37,7 +37,10 @@ class SignatureToTypesConverter(object):
         return tuple(types)
 
     def __read_next_type(self, remaining_signature):
-        code = chr(remaining_signature[0])
+        if isinstance(remaining_signature[0], int):
+            code = chr(remaining_signature[0])
+        else:
+            code = remaining_signature[0]
         if code in self.__codes:
             return self.__codes[code](), remaining_signature[1:]
         else:
