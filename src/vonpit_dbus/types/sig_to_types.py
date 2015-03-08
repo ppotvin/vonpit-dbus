@@ -1,5 +1,6 @@
 # coding: utf-8
 import six
+
 from vonpit_dbus.types.container import Struct, Array, Variant, DictEntry
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.string_like import String, ObjectPath, Signature

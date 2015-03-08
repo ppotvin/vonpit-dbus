@@ -1,5 +1,4 @@
 # coding: utf-8
-import six
 
 from vonpit_dbus.types import DbusBasicType
 
