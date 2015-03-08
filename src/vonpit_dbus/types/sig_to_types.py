@@ -1,6 +1,6 @@
 # coding: utf-8
 import six
-from vonpit_dbus.types.container import Struct
+from vonpit_dbus.types.container import Struct, Array
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.string_like import String, ObjectPath, Signature
 
@@ -47,6 +47,8 @@ class SignatureToTypesConverter(object):
             return self.__read_container(remaining_signature)
         elif code == ')':
             raise _ContainerEnding
+        elif code == 'a':
+            return self.__read_array(remaining_signature)
         else:
             raise ValueError
 
@@ -69,6 +71,10 @@ class SignatureToTypesConverter(object):
                 raise ValueError('STRUCT was not terminated correctly. Missing ")" character')
             types.append(next_type)
         return Struct(types), remaining_signature[1:]
+
+    def __read_array(self, remaining_signature):
+        enclosed_type, remaining_signature = self.__read_next_type(remaining_signature[1:])
+        return Array(enclosed_type), remaining_signature
 
 
 class _ContainerEnding(ValueError):

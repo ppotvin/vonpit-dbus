@@ -1,6 +1,6 @@
 # coding: utf-8
 import unittest
-from vonpit_dbus.types.container import Struct
+from vonpit_dbus.types.container import Struct, Array
 
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.sig_to_types import SignatureToTypesConverter
@@ -93,11 +93,9 @@ class SignatureToTypesConverterUnitTest(unittest.TestCase):
         result = converter.convert(signature)
 
         self.assertEqual(len(result), 1)
-        self.assertIsInstance(result[0], Struct)
         enclosed_types = result[0].enclosed_types
         self.assertEqual(len(enclosed_types), 2)
         self.assertIsInstance(enclosed_types[0], Int32)
-        self.assertIsInstance(enclosed_types[1], Struct)
         enclosed_types_level2 = enclosed_types[1].enclosed_types
         self.assertEqual(len(enclosed_types_level2), 2)
         self.assertIsInstance(enclosed_types_level2[0], Int32)
@@ -126,3 +124,33 @@ class SignatureToTypesConverterUnitTest(unittest.TestCase):
         with self.assertRaises(ValueError):
 
             converter.convert(signature)
+
+    def test_array_of_type_when_convert_should_return_array_type(self):
+        signature = 'au'
+        converter = SignatureToTypesConverter()
+
+        result = converter.convert(signature)
+
+        self.assertEqual(len(result), 1)
+        self.assertIsInstance(result[0], Array)
+        self.assertIsInstance(result[0].enclosed_type, Uint32)
+
+    def test_array_and_other_type_when_convert_should_return_all_types(self):
+        signature = 'aoi'
+        converter = SignatureToTypesConverter()
+
+        result = converter.convert(signature)
+
+        self.assertEqual(len(result), 2)
+        self.assertIsInstance(result[0].enclosed_type, ObjectPath)
+        self.assertIsInstance(result[1], Int32)
+
+    def test_array_of_array_when_convert_should_return_array(self):
+        signature = 'aai'
+        converter = SignatureToTypesConverter()
+
+        result = converter.convert(signature)
+
+        self.assertEqual(len(result), 1)
+        self.assertIsInstance(result[0].enclosed_type.enclosed_type, Int32)
+

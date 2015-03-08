@@ -5,6 +5,15 @@ class Array(object):
     CODE = 'a'
     LENGTH_ALIGNMENT = 4
 
+    def __init__(self, enclosed_type):
+        if not enclosed_type:
+            raise ValueError
+        self.__enclosed_type = enclosed_type
+
+    @property
+    def enclosed_type(self):
+        return self.__enclosed_type
+
 
 class Struct(object):
     CODE = 'r'
