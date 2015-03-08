@@ -3,7 +3,7 @@ import unittest
 
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.sig_to_types import SignatureToTypesConverter
-from vonpit_dbus.types.string_like import String
+from vonpit_dbus.types.string_like import String, ObjectPath, Signature
 
 
 class SignatureToTypesConverterUnitTest(unittest.TestCase):
@@ -54,6 +54,12 @@ class SignatureToTypesConverterUnitTest(unittest.TestCase):
 
     def test_string_when_convert_should_recognize_type(self):
         self._test_when_convert_should_recognize_type('s', String)
+
+    def test_object_path_when_convert_should_recognize_type(self):
+        self._test_when_convert_should_recognize_type('o', ObjectPath)
+
+    def test_signature_when_convert_should_recognize_type(self):
+        self._test_when_convert_should_recognize_type('g', Signature)
 
     def test_two_fixed_type_codes_when_convert_should_return_two_tuple(self):
         signature = 'ui'

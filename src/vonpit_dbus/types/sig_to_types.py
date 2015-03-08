@@ -1,7 +1,7 @@
 # coding: utf-8
 import six
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
-from vonpit_dbus.types.string_like import String
+from vonpit_dbus.types.string_like import String, ObjectPath, Signature
 
 
 class SignatureToTypesConverter(object):
@@ -17,6 +17,8 @@ class SignatureToTypesConverter(object):
         Double,
         UnixFd,
         String,
+        ObjectPath,
+        Signature,
     )
 
     def __init__(self):
@@ -37,12 +39,16 @@ class SignatureToTypesConverter(object):
         return tuple(types)
 
     def __read_next_type(self, remaining_signature):
-        if isinstance(remaining_signature[0], int):
-            code = chr(remaining_signature[0])
-        else:
-            code = remaining_signature[0]
+        code = self.__get_next_letter(remaining_signature)
         if code in self.__codes:
             return self.__codes[code](), remaining_signature[1:]
         else:
             print(code)
             raise ValueError
+
+    @staticmethod
+    def __get_next_letter(array):
+        if isinstance(array[0], int):
+            return chr(array[0])
+        else:
+            return array[0]
