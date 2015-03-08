@@ -1,4 +1,5 @@
 # coding: utf-8
+from vonpit_dbus.types import DbusBasicType
 
 
 class Array(object):
@@ -37,3 +38,17 @@ class Variant(object):
 class DictEntry(object):
     CODE = 'e'
     ALIGNMENT = 8
+
+    def __init__(self, key_type, value_type):
+        if not isinstance(key_type, DbusBasicType):
+            raise ValueError
+        self.__key_type = key_type
+        self.__value_type = value_type
+
+    @property
+    def key_type(self):
+        return self.__key_type
+
+    @property
+    def value_type(self):
+        return self.__value_type

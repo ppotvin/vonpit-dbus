@@ -1,6 +1,6 @@
 # coding: utf-8
 import unittest
-from vonpit_dbus.types.container import Struct, Array, Variant
+from vonpit_dbus.types.container import Struct, Array, Variant, DictEntry
 
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.sig_to_types import SignatureToTypesConverter
@@ -156,3 +156,30 @@ class SignatureToTypesConverterUnitTest(unittest.TestCase):
 
         self.assertEqual(len(result), 1)
         self.assertIsInstance(result[0].enclosed_type.enclosed_type, Int32)
+
+    def test_dict_entry_when_convert_should_return_dict_entry(self):
+        signature = '{us}'
+        converter = SignatureToTypesConverter()
+
+        result = converter.convert(signature)
+
+        self.assertEqual(len(result), 1)
+        self.assertIsInstance(result[0], DictEntry)
+        self.assertIsInstance(result[0].key_type, Uint32)
+        self.assertIsInstance(result[0].value_type, String)
+
+    def test_dict_entry_with_container_as_key_when_convert_should_raise_ValueError(self):
+        signature = '{(i)s}'
+        converter = SignatureToTypesConverter()
+
+        with self.assertRaises(ValueError):
+
+            converter.convert(signature)
+
+    def test_dict_entry_with_no_value_type_when_convert_should_raise_ValueError(self):
+        signature = '{i}'
+        converter = SignatureToTypesConverter()
+
+        with self.assertRaises(ValueError):
+
+            converter.convert(signature)

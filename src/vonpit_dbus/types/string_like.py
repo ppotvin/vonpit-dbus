@@ -1,7 +1,8 @@
 # coding: utf-8
+from vonpit_dbus.types import DbusBasicType
 
 
-class String(object):
+class String(DbusBasicType):
     LENGTH_ALIGNMENT = 4
     CODE = 's'
 

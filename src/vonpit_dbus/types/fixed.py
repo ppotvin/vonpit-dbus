@@ -1,58 +1,54 @@
 # coding: utf-8
 import six
 
-
-class DbusTypeMeta(type):
-    @property
-    def alignment(cls):
-        return cls.alignment
+from vonpit_dbus.types import DbusBasicType
 
 
-class Byte(six.with_metaclass(DbusTypeMeta)):
+class Byte(DbusBasicType):
     ALIGNMENT = 1
     CODE = 'y'
 
 
-class Boolean(six.with_metaclass(DbusTypeMeta)):
+class Boolean(DbusBasicType):
     ALIGNMENT = 4
     CODE = 'b'
 
 
-class Int16(six.with_metaclass(DbusTypeMeta)):
+class Int16(DbusBasicType):
     ALIGNMENT = 2
     CODE = 'n'
 
 
-class Uint16(six.with_metaclass(DbusTypeMeta)):
+class Uint16(DbusBasicType):
     ALIGNMENT = 2
     CODE = 'q'
 
 
-class Int32(six.with_metaclass(DbusTypeMeta)):
+class Int32(DbusBasicType):
     ALIGNMENT = 4
     CODE = 'i'
 
 
-class Uint32(six.with_metaclass(DbusTypeMeta)):
+class Uint32(DbusBasicType):
     ALIGNMENT = 4
     CODE = 'u'
 
 
-class Int64(six.with_metaclass(DbusTypeMeta)):
+class Int64(DbusBasicType):
     ALIGNMENT = 8
     CODE = 'x'
 
 
-class Uint64(six.with_metaclass(DbusTypeMeta)):
+class Uint64(DbusBasicType):
     ALIGNMENT = 8
     CODE = 't'
 
 
-class Double(six.with_metaclass(DbusTypeMeta)):
+class Double(DbusBasicType):
     ALIGNMENT = 8
     CODE = 'd'
 
 
-class UnixFd(six.with_metaclass(DbusTypeMeta)):
+class UnixFd(DbusBasicType):
     ALIGNMENT = 4
     CODE = 'h'

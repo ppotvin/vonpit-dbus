@@ -1,6 +1,6 @@
 # coding: utf-8
 import six
-from vonpit_dbus.types.container import Struct, Array, Variant
+from vonpit_dbus.types.container import Struct, Array, Variant, DictEntry
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.string_like import String, ObjectPath, Signature
 
@@ -44,13 +44,17 @@ class SignatureToTypesConverter(object):
         if code in self.__codes:
             return self.__codes[code](), remaining_signature[1:]
         elif code == '(':
-            return self.__read_container(remaining_signature)
+            return self.__read_struct(remaining_signature)
         elif code == ')':
-            raise _ContainerEnding
+            raise _StructEnding
         elif code == 'a':
             return self.__read_array(remaining_signature)
         elif code == 'v':
             return Variant(), remaining_signature[1:]
+        elif code == '{':
+            return self.__read_dict_entry(remaining_signature)
+        elif code == '}':
+            raise _DictEntryEnding
         else:
             raise ValueError
 
@@ -61,13 +65,13 @@ class SignatureToTypesConverter(object):
         else:
             return array[0]
 
-    def __read_container(self, remaining_signature):
+    def __read_struct(self, remaining_signature):
         types = []
         remaining_signature = remaining_signature[1:]
         while True:
             try:
                 next_type, remaining_signature = self.__read_next_type(remaining_signature)
-            except _ContainerEnding:
+            except _StructEnding:
                 break
             except IndexError:
                 raise ValueError('STRUCT was not terminated correctly. Missing ")" character')
@@ -78,6 +82,25 @@ class SignatureToTypesConverter(object):
         enclosed_type, remaining_signature = self.__read_next_type(remaining_signature[1:])
         return Array(enclosed_type), remaining_signature
 
+    def __read_dict_entry(self, remaining_signature):
+        types = []
+        remaining_signature = remaining_signature[1:]
+        while True:
+            try:
+                next_type, remaining_signature = self.__read_next_type(remaining_signature)
+            except _DictEntryEnding:
+                break
+            except IndexError:
+                raise ValueError('DICT_ENTRY was not terminated correctly. Missing "}" character')
+            types.append(next_type)
+        if len(types) != 2:
+            raise ValueError('Wrong number of fields in DICT_ENTRY definition. Got %d instead' % len(types))
+        return DictEntry(*types), remaining_signature[1:]
 
-class _ContainerEnding(ValueError):
+
+class _StructEnding(ValueError):
+    pass
+
+
+class _DictEntryEnding(ValueError):
     pass
