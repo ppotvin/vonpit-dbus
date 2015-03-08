@@ -1,5 +1,6 @@
 # coding: utf-8
 import unittest
+from vonpit_dbus.types.container import Struct
 
 from vonpit_dbus.types.fixed import Byte, Boolean, Int16, Uint16, Int32, Uint32, Int64, Uint64, Double, UnixFd
 from vonpit_dbus.types.sig_to_types import SignatureToTypesConverter
@@ -71,3 +72,33 @@ class SignatureToTypesConverterUnitTest(unittest.TestCase):
         self.assertEqual(len(result), len(types))
         for result_type, expected_type in zip(result, types):
             self.assertIsInstance(result_type, expected_type)
+
+    def test_struct_of_two_integers_when_convert_should_return_struct_of_two_integers(self):
+        signature = '(iu)'
+        converter = SignatureToTypesConverter()
+
+        result = converter.convert(signature)
+
+        self.assertEqual(len(result), 1)
+        self.assertIsInstance(result[0], Struct)
+        enclosed_types = result[0].enclosed_types
+        self.assertEqual(len(enclosed_types), 2)
+        self.assertIsInstance(enclosed_types[0], Int32)
+        self.assertIsInstance(enclosed_types[1], Uint32)
+
+    def test_struct_inside_struct_when_convert_should_return_all_types(self):
+        signature = '(i(ii))'
+        converter = SignatureToTypesConverter()
+
+        result = converter.convert(signature)
+
+        self.assertEqual(len(result), 1)
+        self.assertIsInstance(result[0], Struct)
+        enclosed_types = result[0].enclosed_types
+        self.assertEqual(len(enclosed_types), 2)
+        self.assertIsInstance(enclosed_types[0], Int32)
+        self.assertIsInstance(enclosed_types[1], Struct)
+        enclosed_types_level2 = enclosed_types[1].enclosed_types
+        self.assertEqual(len(enclosed_types_level2), 2)
+        self.assertIsInstance(enclosed_types_level2[0], Int32)
+        self.assertIsInstance(enclosed_types_level2[1], Int32)
