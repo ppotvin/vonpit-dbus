@@ -2,4 +2,6 @@
 
 
 class DbusBasicType(object):
-    pass
+    @classmethod
+    def pack(cls, value, endianness):
+        pass
