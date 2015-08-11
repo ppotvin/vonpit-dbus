@@ -15,7 +15,6 @@ class String(DbusBasicType):
         raw_bytes = value if isinstance(value, six.binary_type) else value.encode('utf-8')
         size = len(raw_bytes)
         struct_format = '%sL%dsB' % (endianness, size)
-        print(struct_format)
         return struct.pack(struct_format, size, raw_bytes, 0)
 
 
