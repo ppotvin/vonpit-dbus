@@ -20,7 +20,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
 
         transport.send_null_byte.assert_called_once_with()
 
-    def test_when_get_available_mechanisms_should_return_available_mechanisms(self):
+    def test_when_request_available_mechanisms_should_return_available_mechanisms(self):
         mechanisms = ['KERBEROS_V4', 'SKEY']
         transport = TextReplayClientTransport('''
         C: AUTH
@@ -28,14 +28,14 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         ''' % ' '.join(mechanisms))
         connection = given(ADbusClientConnection().connected().with_transport(transport))
 
-        result = connection.get_available_mechanisms()
+        result = connection.request_available_mechanisms()
 
         transport.assert_story_completed()
         for mechanism in mechanisms:
             self.assertIn(mechanism, result)
         self.assertEqual(len(mechanisms), len(result))
 
-    def test_invalid_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
+    def test_invalid_answer_when_request_available_mechanisms_should_raise_DbusConnectionError(self):
         transport = TextReplayClientTransport('''
         C: AUTH
         S: REJCETED SKEY
@@ -43,11 +43,11 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         connection = given(ADbusClientConnection().connected().with_transport(transport))
 
         with self.assertRaises(DbusConnectionError):
-            connection.get_available_mechanisms()
+            connection.request_available_mechanisms()
 
         transport.assert_story_completed()
 
-    def test_error_answer_when_get_available_mechanisms_should_raise_DbusConnectionError(self):
+    def test_error_answer_when_request_available_mechanisms_should_raise_DbusConnectionError(self):
         transport = TextReplayClientTransport('''
         C: AUTH
         S: ERROR
@@ -55,7 +55,7 @@ class DbusClientConnectionUnitTest(unittest.TestCase):
         connection = given(ADbusClientConnection().connected().with_transport(transport))
 
         with self.assertRaises(DbusConnectionError):
-            connection.get_available_mechanisms()
+            connection.request_available_mechanisms()
 
         transport.assert_story_completed()
 

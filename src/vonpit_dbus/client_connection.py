@@ -14,7 +14,7 @@ class DbusClientConnection(object):
     def start(self):
         self.__transport.send_null_byte()
 
-    def get_available_mechanisms(self):
+    def request_available_mechanisms(self):
         self.__transport.send_line('AUTH')
         response = self.__transport.recv_command()
         if not response.startswith('REJECTED '):
